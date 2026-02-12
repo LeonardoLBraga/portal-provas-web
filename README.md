@@ -391,21 +391,21 @@ flowchart TB
 
 ```mermaid
 flowchart TD
-    Login[Login OK] --> Role{user.role}
-    Role -->|professor| Prof[/professor/provas]
-    Role -->|aluno| Aluno[/aluno/provas]
-    Role -->|admin| Admin[/admin/usuarios]
+    Login[Login OK] --> Role{"Papel do usuário"}
+    Role -->|professor| Prof[professor/provas]
+    Role -->|aluno| Aluno[aluno/provas]
+    Role -->|admin| Admin[admin/usuarios]
     Prof --> ListaP[Lista Provas]
     Prof --> NovaP[Nova Prova]
     Prof --> Questoes[Questões]
     Prof --> Resultados[Resultados]
-    Aluno --> Disponiveis[Provas Disponíveis]
+    Aluno --> Disponiveis[Provas Disponiveis]
     Aluno --> Fazer[Fazer Prova]
     Aluno --> Tentativas[Minhas Tentativas]
     Aluno --> Resultado[Ver Resultado]
-    Admin --> ListaU[Lista Usuários]
-    Admin --> NovoU[Novo Usuário]
-    Admin --> EditarU[Editar Usuário]
+    Admin --> ListaU[Lista Usuarios]
+    Admin --> NovoU[Novo Usuario]
+    Admin --> EditarU[Editar Usuario]
 ```
 
 ---
