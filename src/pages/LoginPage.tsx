@@ -95,7 +95,7 @@ export function LoginPage() {
             </button>
           </form>
           <p className="text-xs text-gray-400 text-center mt-4">
-            Mock: aluno@teste.com ou professor@teste.com / 123456
+            Mock: admin@teste.com, aluno@teste.com ou professor@teste.com / 123456
           </p>
         </div>
       </div>

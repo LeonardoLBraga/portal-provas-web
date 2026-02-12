@@ -1,5 +1,6 @@
 import axios, { type AxiosInstance } from "axios";
 import type { LoginCredentials, LoginResponse } from "../types/auth";
+import { getUserByEmail } from "./users";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -10,41 +11,22 @@ const api: AxiosInstance = axios.create({
   },
 });
 
-const MOCK_USERS: Record<string, { password: string; user: LoginResponse["user"] }> = {
-  "aluno@teste.com": {
-    password: "123456",
-    user: {
-      id: 1,
-      name: "Aluno Teste",
-      email: "aluno@teste.com",
-      role: "aluno",
-    },
-  },
-  "professor@teste.com": {
-    password: "123456",
-    user: {
-      id: 2,
-      name: "Professor Teste",
-      email: "professor@teste.com",
-      role: "professor",
-    },
-  },
-};
-
 const delay = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 async function mockLogin(credentials: LoginCredentials): Promise<LoginResponse> {
   await delay(500);
 
-  const mockUser = MOCK_USERS[credentials.email];
-  if (!mockUser || mockUser.password !== credentials.password) {
+  const userWithPass = getUserByEmail(credentials.email);
+  if (!userWithPass || userWithPass.password !== credentials.password) {
     throw new Error("Email ou senha inválidos.");
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- omit password from response
+  const { password, ...user } = userWithPass;
   return {
-    token: `mock-jwt-${mockUser.user.id}-${Date.now()}`,
-    user: mockUser.user,
+    token: `mock-jwt-${user.id}-${Date.now()}`,
+    user,
   };
 }
 

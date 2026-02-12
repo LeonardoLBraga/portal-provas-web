@@ -16,6 +16,9 @@ import { ProvasDisponiveisPage } from "../pages/aluno/ProvasDisponiveisPage";
 import { FazerProvaPage } from "../pages/aluno/FazerProvaPage";
 import { ResultadoPage } from "../pages/aluno/ResultadoPage";
 import { MinhasTentativasPage } from "../pages/aluno/MinhasTentativasPage";
+import { ListaUsuariosPage } from "../pages/admin/ListaUsuariosPage";
+import { NovoUsuarioPage } from "../pages/admin/NovoUsuarioPage";
+import { EditarUsuarioPage } from "../pages/admin/EditarUsuarioPage";
 
 function PrivateRoute() {
   const { isAuthenticated, loading } = useAuth();
@@ -79,6 +82,13 @@ export function AppRoutes() {
             <Route path="provas/:id/fazer" element={<FazerProvaPage />} />
             <Route path="tentativas" element={<MinhasTentativasPage />} />
             <Route path="tentativas/:attemptId/resultado" element={<ResultadoPage />} />
+          </Route>
+        </Route>
+        <Route path="admin" element={<RoleRoute allowedRole="admin" />}>
+          <Route element={<Layout />}>
+            <Route path="usuarios" element={<ListaUsuariosPage />} />
+            <Route path="usuarios/novo" element={<NovoUsuarioPage />} />
+            <Route path="usuarios/:id/editar" element={<EditarUsuarioPage />} />
           </Route>
         </Route>
       </Route>

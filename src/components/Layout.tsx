@@ -54,6 +54,29 @@ function AlunoNav() {
   );
 }
 
+function AdminNav() {
+  const location = useLocation();
+  const base = "/admin";
+  const active = (path: string) =>
+    location.pathname.startsWith(path) ? "bg-blue-100 text-blue-800 font-medium" : "text-gray-600 hover:bg-gray-100";
+  return (
+    <nav className="flex gap-1">
+      <Link
+        to={`${base}/usuarios`}
+        className={`px-4 py-2 rounded-md ${active(`${base}/usuarios`)}`}
+      >
+        Usuários
+      </Link>
+      <Link
+        to={`${base}/usuarios/novo`}
+        className={`px-4 py-2 rounded-md ${active(`${base}/usuarios/novo`)}`}
+      >
+        Novo Usuário
+      </Link>
+    </nav>
+  );
+}
+
 export function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -75,6 +98,7 @@ export function Layout() {
             </Link>
             {role === "professor" && <ProfessorNav />}
             {role === "aluno" && <AlunoNav />}
+            {role === "admin" && <AdminNav />}
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-600">{user?.name}</span>
