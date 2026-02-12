@@ -159,6 +159,257 @@ Estrutura proposta para o frontend em React + TypeScript:
 
 ---
 
+## 📊 Fluxo de Dados
+
+### Persistência (localStorage)
+
+| Chave | Conteúdo | Usado por |
+|-------|----------|-----------|
+| `portal_provas_token` | Token JWT (mock) | AuthContext, exams (com API real) |
+| `portal_provas_user` | `{ id, name, email, role }` | AuthContext, exams.ts |
+| `portal_provas_users` | `{ users, nextId }` | users.ts (CRUD admin) |
+| `portal_provas_mock_data` | `{ exams, questions, attempts, results }` | exams.ts |
+
+### Fluxo geral da aplicação
+
+```mermaid
+flowchart TB
+    subgraph App [App]
+        Main[main.tsx]
+    end
+    subgraph Providers [Providers]
+        Router[BrowserRouter]
+        Auth[AuthProvider]
+    end
+    subgraph Routes [Routes]
+        Public[PublicRoute /login]
+        Private[PrivateRoute /]
+        PR[RoleRoute professor]
+        AR[RoleRoute aluno]
+        AR2[RoleRoute admin]
+    end
+    Main --> Router
+    Router --> Auth
+    Auth --> Routes
+    Public --> LoginPage[LoginPage]
+    Private --> HomeRedirect[HomeRedirect]
+    Private --> PR
+    Private --> AR
+    Private --> AR2
+    PR --> Layout[Layout]
+    AR --> Layout
+    AR2 --> Layout
+    Layout --> ProfessorPages[Professor Pages]
+    Layout --> AlunoPages[Aluno Pages]
+    Layout --> AdminPages[Admin Pages]
+```
+
+### Fluxo de autenticação
+
+```mermaid
+flowchart TD
+    subgraph Init [Inicialização]
+        A1[App carrega] --> A2[AuthProvider]
+        A2 --> A3[loadFromStorage]
+        A3 --> A4{Token e User em localStorage?}
+        A4 -->|Sim| A5[Estado: user + token]
+        A4 -->|Não| A6[Estado: null]
+    end
+    subgraph Login [Login]
+        L1[LoginPage: email + senha] --> L2[api.login]
+        L2 --> L3{VITE_API_URL?}
+        L3 -->|Sim| L4[POST /api/login]
+        L3 -->|Não| L5[mockLogin]
+        L5 --> L6[users.getUserByEmail]
+        L6 --> L7[portal_provas_users]
+        L7 --> L8{Usuário existe e senha OK?}
+        L8 -->|Sim| L9[Retorna token + user]
+        L8 -->|Não| L10[Erro]
+        L9 --> L11[AuthContext.login]
+        L11 --> L12[localStorage: token + user]
+        L12 --> L13[Redireciona conforme role]
+    end
+```
+
+### Fluxo Admin — CRUD de usuários
+
+```mermaid
+flowchart LR
+    subgraph AdminUI [Admin UI]
+        Lista[ListaUsuariosPage]
+        Novo[NovoUsuarioPage]
+        Editar[EditarUsuarioPage]
+    end
+    subgraph UsersService [users.ts]
+        LU[listUsers]
+        GU[getUser]
+        CU[createUser]
+        UU[updateUser]
+        GBE[getUserByEmail]
+    end
+    subgraph Store [localStorage]
+        PU[portal_provas_users]
+    end
+    Lista -->|role filter| LU
+    Novo --> CU
+    Editar --> GU
+    Editar --> UU
+    LU --> PU
+    GU --> PU
+    CU --> PU
+    UU --> PU
+    GBE --> PU
+```
+
+### Fluxo Professor — Provas e questões
+
+```mermaid
+flowchart TD
+    subgraph ProfessorUI [Professor UI]
+        LP[ListaProvasPage]
+        NP[NovaProvaPage]
+        EP[EditarProvaPage]
+        QP[QuestoesPage]
+        NQP[NovaQuestaoPage]
+        EQP[EditarQuestaoPage]
+        RP[ResultadosPage]
+        RPP[ResultadosProvaPage]
+    end
+    subgraph ExamsService [exams.ts]
+        LE[listExams]
+        GE[getExam]
+        CE[createExam]
+        UE[updateExam]
+        DE[deleteExam]
+        CQ[createQuestion]
+        UQ[updateQuestion]
+        DQ[deleteQuestion]
+        LR[listResults]
+    end
+    subgraph Stores [Storage]
+        User[portal_provas_user]
+        Mock[portal_provas_mock_data]
+    end
+    LP --> LE
+    NP --> CE
+    EP --> GE
+    EP --> UE
+    QP --> GE
+    NQP --> CQ
+    EQP --> UQ
+    EQP --> GE
+    RP --> LE
+    RPP --> GE
+    RPP --> LR
+    LE --> User
+    LE --> Mock
+    CE --> User
+    CE --> Mock
+    GE --> Mock
+    LR --> Mock
+```
+
+### Fluxo Aluno — Provas e tentativas
+
+```mermaid
+flowchart TD
+    subgraph AlunoUI [Aluno UI]
+        PD[ProvasDisponiveisPage]
+        FP[FazerProvaPage]
+        MT[MinhasTentativasPage]
+        Res[ResultadoPage]
+    end
+    subgraph ExamsService [exams.ts]
+        LE2[listExams]
+        GE2[getExam]
+        SA[startAttempt]
+        SubA[submitAttempt]
+        GRes[getResult]
+        LMA[listMyAttempts]
+        GAtt[getAttempt]
+    end
+    subgraph Stores [Storage]
+        User2[portal_provas_user]
+        Mock2[portal_provas_mock_data]
+    end
+    PD --> LE2
+    PD --> SA
+    FP --> GE2
+    FP --> SA
+    FP --> SubA
+    MT --> LMA
+    Res --> GAtt
+    Res --> GRes
+    Res --> GE2
+    LE2 --> Mock2
+    SA --> User2
+    SA --> Mock2
+    SubA --> Mock2
+    GRes --> Mock2
+    LMA --> User2
+    LMA --> Mock2
+```
+
+### Integração entre serviços
+
+```mermaid
+flowchart TB
+    subgraph Pages [Pages]
+        LoginPage
+        AdminPages
+        ProfessorPages
+        AlunoPages
+    end
+    subgraph Services [Services]
+        API[api.ts]
+        Users[users.ts]
+        Exams[exams.ts]
+    end
+    subgraph Context [Context]
+        AuthContext
+    end
+    subgraph Storage [localStorage]
+        token[portal_provas_token]
+        user[portal_provas_user]
+        users[portal_provas_users]
+        mock[portal_provas_mock_data]
+    end
+    LoginPage --> API
+    API --> Users
+    API --> AuthContext
+    AuthContext --> token
+    AuthContext --> user
+    AdminPages --> Users
+    Users --> users
+    ProfessorPages --> Exams
+    AlunoPages --> Exams
+    Exams --> user
+    Exams --> mock
+```
+
+### Fluxo por papel após login
+
+```mermaid
+flowchart TD
+    Login[Login OK] --> Role{user.role}
+    Role -->|professor| Prof[/professor/provas]
+    Role -->|aluno| Aluno[/aluno/provas]
+    Role -->|admin| Admin[/admin/usuarios]
+    Prof --> ListaP[Lista Provas]
+    Prof --> NovaP[Nova Prova]
+    Prof --> Questoes[Questões]
+    Prof --> Resultados[Resultados]
+    Aluno --> Disponiveis[Provas Disponíveis]
+    Aluno --> Fazer[Fazer Prova]
+    Aluno --> Tentativas[Minhas Tentativas]
+    Aluno --> Resultado[Ver Resultado]
+    Admin --> ListaU[Lista Usuários]
+    Admin --> NovoU[Novo Usuário]
+    Admin --> EditarU[Editar Usuário]
+```
+
+---
+
 ## 🔐 Autenticação (visão funcional)
 
 - Tela de login para:
